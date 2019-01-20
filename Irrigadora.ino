@@ -24,7 +24,7 @@ http://hacks.ayars.org/2011/04/ds3231-real-time-clock.html
 #define DIO 3
 #define Rele 13
 
-const uint8_t SEG_DONE[] = {
+const uint8_t SEG_H[] = {
   0x0,           // d
   0x0,   // O
   0x0,                           // n
@@ -85,8 +85,9 @@ void AtribuiHorario(byte& Hour, byte& Minute, byte& Second) {
       Temp1 = (byte)InString[4] -48;
       Temp2 = (byte)InString[5] -48;
       Second = Temp1*10 + Temp2;
-      Clock.setA1Time(0x0, Hora, Minuto, Segundo, ALRM1_MATCH_HR_MIN_SEC, true, false, false);
-      Clock.turnOnAlarm(1);
+      Clock.setHour(Hour);
+      Clock.setMinute(Minute);
+      Clock.setSecond(Second);
   }
 }
 
@@ -104,28 +105,29 @@ void setup() {
 void loop() {
 
   tela = (tela+1)%10;
-
+  /************************************************************/
+  /************ Telas do display ******************************/
+  /************************************************************/
   if (tela<8) {
+    //Mostra a hora com os pontos piscando
     if (Clock.getSecond()%2==1) display.showNumberDecEx(Clock.getHour(h12, PM)*100+Clock.getMinute(), (0x40), true);
     else display.showNumberDec(Clock.getHour(h12, PM)*100+Clock.getMinute(), true);
   } else if (tela<9){
+    //Mostra a temperatura
     display.showNumberHexEx(0xc,0,false);
     display.showNumberDec(Clock.getTemperature(), false,2,0);
   } else {
+    //Mostra a humidade
     humidade = analogRead(sensor);
     humidade = map(humidade,850,250,0,100);
-    display.setSegments(SEG_DONE);
+    display.setSegments(SEG_H);
     display.showNumberDec(humidade, false,2,0);
     Serial.print("Mistura : ");
     Serial.print(humidade);
     Serial.println("%");
   }
 
-	// Indicate whether an alarm went off
-	if (Clock.checkIfAlarm(1)) {
-    Irrigar();
-	}
-
+	
 	delay(1000);
 }
 
